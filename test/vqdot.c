@@ -16,6 +16,19 @@
 
 extern void vqdot_run(const void *vs1, const void *vs2,
                       const void *oldvd, void *out, int type);
+extern void vqdot_m2(const void *A, const void *B,
+                     const void *oldvd, void *out);
+
+/* LMUL=2：32 个 int8 -> 8 个 int32，golden 逐 lane 校验 */
+static int32_t golden_m2(const uint8_t *A, const uint8_t *B,
+                         int32_t oldv, int lane) {
+  int32_t acc = 0;
+  for (int k = 0; k < 4; k++) {
+    int i = lane * 4 + k;
+    acc += (int32_t)(int8_t)A[i] * (int32_t)(int8_t)B[i];
+  }
+  return acc + oldv;
+}
 
 /* type: 0 = vqdot (ss), 1 = vqdotu (uu), 2 = vqdotsu (vs2 signed x vs1 unsigned) */
 static int32_t golden(const uint8_t *vs1, const uint8_t *vs2,
@@ -145,6 +158,35 @@ int main() {
     vqdot_run(z16, z16, ov, out, 0);
     printf("OLDONLY ss: %d %d %d %d (expect 100 200 300 400)\n",
            (int)out[0], (int)out[1], (int)out[2], (int)out[3]);
+  }
+
+  /* LMUL=2 扩展：32 个 int8 -> 8 个 int32 */
+  {
+    static uint8_t m2A[32] __attribute__((aligned(16)));
+    static uint8_t m2B[32] __attribute__((aligned(16)));
+    static uint32_t m2old[8] __attribute__((aligned(16)));
+    static uint32_t m2out[8] __attribute__((aligned(16)));
+    for (int i = 0; i < 32; i++) {
+      m2A[i] = (uint8_t)(i - 8);
+      m2B[i] = (uint8_t)(7 - i);
+    }
+    for (int j = 0; j < 8; j++) m2old[j] = 100 * j;
+    vqdot_m2(m2A, m2B, m2old, m2out);
+    int ok = 1;
+    for (int lane = 0; lane < 8; lane++) {
+      int32_t exp = golden_m2(m2A, m2B, (int32_t)m2old[lane], lane);
+      if ((int32_t)m2out[lane] != exp) {
+        printf("[FAIL] m2 lane %d: got %d exp %d\n", lane,
+               (int32_t)m2out[lane], exp);
+        ok = 0;
+      }
+    }
+    if (ok) {
+      printf("LMUL=2 PASS: %d %d %d %d %d %d %d %d\n",
+             (int)m2out[0], (int)m2out[1], (int)m2out[2], (int)m2out[3],
+             (int)m2out[4], (int)m2out[5], (int)m2out[6], (int)m2out[7]);
+    }
+    pass &= ok;
   }
 
   /* 边界用例 */

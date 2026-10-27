@@ -8,7 +8,7 @@
 | 作者 | 孙英杰（兰州大学 信息科学与工程学院） |
 | 基线处理器 | 香山「昆明湖」V2（`kunminghu-v2`，RVV 1.0，VLEN=128） |
 | 命题 / 社区 | 北京开源芯片研究院（香山）· OpenXiangShan |
-| 当前状态 | **三阶段全部完成，Difftest 全绿，基线对比完成** |
+| 当前状态 | **三阶段全部完成，Difftest 全绿，基线对比完成，支持 LMUL>1** |
 
 ## 1. 项目简介
 
@@ -68,6 +68,7 @@ docs/  ·  test-logs/
   - [x] NEMU 与 RTL 协同仿真（Difftest）。
   - [x] 标准 RVV 基线（10 条计算指令：vwmul + 2 级加法树 + 置换 + 加宽归约）。
   - [x] 延迟对比（见下表），报告见 docs《阶段三延迟加速比分析报告》。
+  - [x] **LMUL>1 扩展**：无需改 RTL，由 uop 拆分（`VEC_VVV→numOfUop=lmul`）天然支持；LMUL=2（32 INT8→8 INT32）实测 8 lane 全对，报告见 docs《LMUL多寄存器扩展原理与验证》。
 
 **阶段三延迟结果（VLEN=128，16×INT8）**：
 
@@ -120,4 +121,5 @@ bash $VDOT_HOME/run_vbench.sh    # 延迟：输出端到端 + 纯计算周期与
 
 - RTL 运算核无 mask 输入，按 `vm=1` 整向量 active（测试程序固定 vm=1）；NEMU 侧实现了 `vm=0` 但 RTL 暂不支持。
 - 仅实现 `.vv`（`.vx` OPMVX 未做）；仅 INT8 / SEW=32。
+- LMUL 支持 m1/m2/m4/m8（由 uop 拆分自动覆盖，已实测 m2；m4/m8 机制相同）。
 - 无 FPGA，性能与面积以仿真替代。

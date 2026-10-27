@@ -62,3 +62,20 @@ vqdot_run:
   vse32.v v8, (a3)                   /* 回写累加结果 */
   ret
 .size vqdot_run, .-vqdot_run
+
+# void vqdot_m2(a0=A, a1=B, a2=old, a3=out)
+# SEW=32、LMUL=2，vl=8（32 个 int8 -> 8 个 int32）。
+# m2 寄存器组：v8(v8,v9)=old/out；v10(v10,v11)=A；v12(v12,v13)=B。
+.globl vqdot_m2
+.type vqdot_m2, @function
+vqdot_m2:
+  li    t1, 0x600
+  csrs  mstatus, t1
+  vsetvli t0, x0, e32, m2, ta, ma
+  vle32.v v8, (a2)
+  vle32.v v10, (a0)
+  vle32.v v12, (a1)
+  VQDOT_VV 8, 12, 10
+  vse32.v v8, (a3)
+  ret
+.size vqdot_m2, .-vqdot_m2
