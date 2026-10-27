@@ -8,13 +8,13 @@
 | 作者 | 孙英杰（兰州大学 信息科学与工程学院） |
 | 基线处理器 | 香山「昆明湖」V2（`kunminghu-v2`，RVV 1.0，VLEN=128） |
 | 命题 / 社区 | 北京开源芯片研究院（香山）· OpenXiangShan |
-| 当前状态 | **阶段二 MVP 全链路 Difftest 全绿** |
+| 当前状态 | **三阶段全部完成，Difftest 全绿，基线对比完成** |
 
 ## 1. 项目简介
 
-在香山昆明湖 V2 的向量乘累加单元（**vimac**）上新增一条融合「**子元素乘法 → 符号扩展 → 4 项归约 → 水平点积累加**」的自定义向量点积指令 **vqdot**（对标 SiFive 官方提案 `Xsfvqdotq`），把量化 LLM 推理（W8A8/W4A16）中 GEMV / 线性层的点积内核，从标准 RVV「`vmul` + `vredsum`」多条指令融合为单条，提升算力密度、降低取指与访存开销。架构可向 INT16 / INT4 / BF16 / FP16 扩展。
+在香山昆明湖 V2 的向量乘累加单元（**vimac**）上新增一条融合「**子元素乘法 → 符号扩展 → 4 项归约 → 水平点积累加**」的自定义向量点积指令 **vqdot**（对标 SiFive 官方提案 `Xsfvqdotq`），把量化 LLM 推理（W8A8/W4A16）中 GEMV / 线性层的点积内核，从标准 RVV 多条指令融合为单条，提升算力密度、降低取指与访存开销。架构可向 INT16 / INT4 / BF16 / FP16 扩展。
 
-**为什么标准 RVV 不够**：RVV 1.0 没有跨元素的融合点积，`vqdot` 的价值是把「子元素乘法 + 符号扩展 + 加宽 + 树状累加」压进一条指令、在一个 64bit 模块内完成。
+**为什么标准 RVV 不够**：RVV 1.0 没有跨元素的融合点积，标准实现需 10 条计算指令（含 3 次置换、2 级加法树）；`vqdot` 把「子元素乘法 + 符号扩展 + 加宽 + 树状累加」压进一条指令、在一个 64bit 模块内完成。
 
 ## 2. 指令语义与编码（定稿，对标 SiFive）
 
@@ -48,7 +48,9 @@ nemu/
   vqdot.h                                   # NEMU golden（SEW=32 packed 8bit）
   rvv_decode.h / rvv_exec.h / isa-all-instr.h
 test/
-  vqdot.c / vqdot_asm.S / Makefile          # nexus-am 测试程序
+  vqdot.c / vqdot_asm.S / Makefile          # 功能/正确性测试程序
+benchmark/
+  vbench.c / vbench_asm.S / Makefile        # 延迟基准（端到端 + 纯计算）
 docs/  ·  test-logs/
 ```
 
@@ -61,8 +63,18 @@ docs/  ·  test-logs/
   - [x] 译码（`Instructions.scala` + `VecDecoder.scala` + `VimacType/VimacOpcode`）。
   - [x] **关键属性登记**：`DecodeUnit.vmaInsts` 加入 vqdot → `isDependOldVd=true`（见 §6）。
   - [x] NEMU golden。
-  - [x] **端到端 Difftest 全绿**：定向（DOT+OLD=108/208/308/408、OLDONLY=100/200/300/400）+ 边界 ss/uu/su + 3 类型×100 组随机（含非零 old），HIT GOOD TRAP、零 mismatch。
-- [ ] **阶段三：协同仿真与评估** —— Qwen2.5 / Llama3.2-1B W8A8/W4A16 内核加速比、面积/功耗评估（仿真替代 FPGA）。
+  - [x] **端到端 Difftest 全绿**：定向 + 边界 + 3 类型×100 组随机，HIT GOOD TRAP、零 mismatch。
+- [x] **阶段三：协同仿真与评估**
+  - [x] NEMU 与 RTL 协同仿真（Difftest）。
+  - [x] 标准 RVV 基线（10 条计算指令：vwmul + 2 级加法树 + 置换 + 加宽归约）。
+  - [x] 延迟对比（见下表），报告见 docs《阶段三延迟加速比分析报告》。
+
+**阶段三延迟结果（VLEN=128，16×INT8）**：
+
+| 维度 | vqdot | baseline | 加速比 |
+|---|---|---|---|
+| 端到端 kernel（含 load/store） | 70 cyc | 114 cyc | **1.63x** |
+| 纯计算（累加延迟） | 8 cyc | 37 cyc | **4.62x** |
 
 ## 5. 如何复现（可移植，路径均用环境变量）
 
@@ -83,16 +95,19 @@ export NEMU_HOME=$VDOT_HOME/xs-env/NEMU
 make -j32    # 产物 build/riscv64-nemu-interpreter-so
 ```
 
-**(c) 测试程序**
+**(c) 功能测试 / 延迟基准**
 ```bash
-cd $VDOT_HOME/xs-env/nexus-am/apps/vqdot
+cd $VDOT_HOME/xs-env/nexus-am/apps/vqdot    # 功能
+make ARCH=riscv64-xs CROSS_COMPILE=riscv64-unknown-elf-
+cd $VDOT_HOME/xs-env/nexus-am/apps/vbench   # 延迟基准
 make ARCH=riscv64-xs CROSS_COMPILE=riscv64-unknown-elf-
 ```
 
 **(d) 仿真（JDK21，改 RTL 后先删 build/rtl 再重编）**
 ```bash
 bash $VDOT_HOME/build_simv.sh    # 产物 build/simv
-bash $VDOT_HOME/run_vqdot.sh     # HIT GOOD TRAP、零 different
+bash $VDOT_HOME/run_vqdot.sh     # 功能：HIT GOOD TRAP、零 different
+bash $VDOT_HOME/run_vbench.sh    # 延迟：输出端到端 + 纯计算周期与加速比
 ```
 
 ## 6. 设计要点与最关键的一个坑
