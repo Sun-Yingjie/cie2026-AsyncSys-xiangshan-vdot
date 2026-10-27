@@ -1,17 +1,21 @@
 /***************************************************************************************
  * CIE2026 AsyncSys - vqdot.vv（对标 SiFive Xsfvqdotq）NEMU golden
  *
- * 指令在 SEW=32（vtype->vsew=2）下执行；每个 32bit 元素的 vs1/vs2 被重新解释为
- * 4 个 packed 8bit 子元素，子元素两两相乘并符号扩展到 32bit，4 项归约后累加到
- * 对应的 32bit vd（wrapping on overflow，不饱和）：
+ * 支持两种 SEW（SiFive 提案第 4 页 NOTE 定义的变体）：
+ *   SEW=32（vsew=2）：每个 32bit 元素 packed 4 个 8bit 子元素 -> 累加到 32bit（标准）
+ *   SEW=16（vsew=1）：每个 16bit 元素 packed 4 个 4bit 子元素 -> 累加到 16bit（本项目
+ *                     实现 SiFive 预留的 INT4 未来变体）
+ *
+ * 通用语义（每组 4 个子元素，quad-widening）：
  *   vd[i] = old_vd[i] + Σ_{k=0..3} sign_extend(vs1[i][k]) * sign_extend(vs2[i][k])
+ * （wrapping on overflow，不饱和）
  *
  *   vqdot   : vs2 signed   × vs1 signed
  *   vqdotu  : vs2 unsigned × vs1 unsigned
  *   vqdotsu : vs2 signed   × vs1 unsigned
  *
- * 元素以 EEW=32 经 get_vreg/set_vreg 访问，天然支持 LMUL；并按 RVV 规范处理
- * vm 掩码（vma）与 tail（vta）。SEW != 32 时触发非法指令（SiFive 规定 reserved）。
+ * 元素以 EEW=SEW 经 get_vreg/set_vreg 访问，天然支持 LMUL；并按 RVV 规范处理
+ * vm 掩码（vma）与 tail（vta）。SEW 不是 16/32 时触发非法指令。
  ***************************************************************************************/
 
 #include <common.h>
@@ -22,13 +26,24 @@
 
 #include "vcompute_impl.h"
 
+/* 4bit 有符号扩展到 32bit */
+static inline int32_t sext4(uint8_t e) {
+  return (e & 0x8) ? (int32_t)(e) - 16 : (int32_t)e;
+}
+
 static inline void vqdot_core(Decode *s, int vs2_signed, int vs1_signed) {
   require_vector(true);
   vector_vvv_check(s, true);
-  /* SiFive 语义：仅 SEW=32 合法 */
-  if (vtype->vsew != 2) {
-    longjmp_exception(EX_II);
-  }
+  /* SEW=32 -> int8（vsew=2）；SEW=16 -> int4（vsew=1）；其余非法 */
+  int isInt4;
+  if (vtype->vsew == 2)      isInt4 = 0;
+  else if (vtype->vsew == 1) isInt4 = 1;
+  else { longjmp_exception(EX_II); return; }
+
+  const int subbits = isInt4 ? 4 : 8;
+  const uint64_t submask = isInt4 ? 0xfu : 0xffu;
+  const uint64_t accmask = isInt4 ? 0xffffu : 0xffffffffu;
+
   check_vstart_exception(s);
   if (check_vstart_ignore(s)) {
     vp_set_dirty();
@@ -56,15 +71,21 @@ static inline void vqdot_core(Decode *s, int vs2_signed, int vs1_signed) {
 
     int32_t acc = 0;
     for (int k = 0; k < 4; k++) {
-      uint8_t e1 = (uint8_t)((a >> (8 * k)) & 0xff);
-      uint8_t e2 = (uint8_t)((b >> (8 * k)) & 0xff);
-      int32_t x1 = vs1_signed ? (int32_t)(int8_t)e1 : (int32_t)e1;
-      int32_t x2 = vs2_signed ? (int32_t)(int8_t)e2 : (int32_t)e2;
+      uint8_t e1 = (uint8_t)((a >> (subbits * k)) & submask);
+      uint8_t e2 = (uint8_t)((b >> (subbits * k)) & submask);
+      int32_t x1, x2;
+      if (isInt4) {
+        x1 = vs1_signed ? sext4(e1) : (int32_t)e1;
+        x2 = vs2_signed ? sext4(e2) : (int32_t)e2;
+      } else {
+        x1 = vs1_signed ? (int32_t)(int8_t)e1 : (int32_t)e1;
+        x2 = vs2_signed ? (int32_t)(int8_t)e2 : (int32_t)e2;
+      }
       acc += x1 * x2;
     }
-    int32_t old = (int32_t)(oldv & 0xffffffffu);
-    int32_t res = old + acc; /* 32bit 二补数自然回绕 */
-    set_vreg(id_dest->reg, idx, (rtlreg_t)(uint32_t)res,
+    int32_t old = (int32_t)(oldv & accmask);
+    int32_t res = old + acc; /* 累加器位宽二补数自然回绕 */
+    set_vreg(id_dest->reg, idx, (rtlreg_t)(res & accmask),
              vtype->vsew, vtype->vlmul, 1);
   }
 

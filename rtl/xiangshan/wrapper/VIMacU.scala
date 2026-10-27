@@ -164,8 +164,8 @@ class VIMacU(cfg: FuConfig)(implicit p: Parameters) extends VecPipedFuncUnit(cfg
   private val outVxsat = Cat(vimacs.indices.reverse.map(i =>
     Mux(outIsVdot, vdots(i).io.vxsat, vimacs(i).io.vxsat)))
 
-  // vdot 的结果元素恒为 int32（INT8: vsew+2，INT16: vsew+1），统一 e32
-  private val outEew = Mux(outIsVdot, VSew.e32,
+  // vdot 输出 EEW = 输入 SEW：INT8（SEW=32）-> e32，INT4（SEW=16）-> e16
+  private val outEew = Mux(outIsVdot, outVecCtrl.vsew,
     Mux(outWiden, outVecCtrl.vsew + 1.U, outVecCtrl.vsew))
   mgu.io.in.vd := outVd
   mgu.io.in.oldVd := outOldVd
