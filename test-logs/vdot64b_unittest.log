@@ -1,0 +1,14 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=17890 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=17890 -Dhttp.nonProxyHosts=localhost|127.0.0.1|192.168.*
+[info] compiling 1 Scala source to /team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan/yunsuan/out/YunSuan/compile.dest/classes ...
+[info] done compiling
+[info] compiling 1 Scala source to /team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan/yunsuan/out/YunSuan/test/compile.dest/classes ...
+[info] done compiling
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=17890 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=17890 -Dhttp.nonProxyHosts=localhost|127.0.0.1|192.168.*
+[32mVDot64bSpec:[0m
+[32mVDot64b dot-product[0m
+[32m- should pass directed int8 signed dot[0m
+[32m- should pass random s8[0m
+[32m- should pass random u8[0m
+[32m- should pass random mixed8[0m
+[32m- should pass random s16[0m
+[32m- should pass random u16[0m
