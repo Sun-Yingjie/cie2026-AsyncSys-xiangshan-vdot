@@ -8,7 +8,7 @@
 | 作者 | 孙英杰（兰州大学 信息科学与工程学院） |
 | 基线处理器 | 香山「昆明湖」V2（`kunminghu-v2`，RVV 1.0，VLEN=128） |
 | 命题 / 社区 | 北京开源芯片研究院（香山）· OpenXiangShan |
-| 当前状态 | **三阶段全部完成，Difftest 全绿，基线对比完成，支持 LMUL>1** |
+| 当前状态 | **三阶段全部完成，Difftest 全绿，GEMV 端到端加速 2.82x，支持 LMUL>1** |
 
 ## 1. 项目简介
 
@@ -50,7 +50,8 @@ nemu/
 test/
   vqdot.c / vqdot_asm.S / Makefile          # 功能/正确性测试程序
 benchmark/
-  vbench.c / vbench_asm.S / Makefile        # 延迟基准（端到端 + 纯计算）
+  vbench.c / vbench_asm.S / Makefile        # 点积延迟基准（端到端 + 纯计算）
+  gemv/                                     # 量化 GEMV 线性层端到端基准
 docs/  ·  test-logs/
 ```
 
@@ -69,6 +70,7 @@ docs/  ·  test-logs/
   - [x] 标准 RVV 基线（10 条计算指令：vwmul + 2 级加法树 + 置换 + 加宽归约）。
   - [x] 延迟对比（见下表），报告见 docs《阶段三延迟加速比分析报告》。
   - [x] **LMUL>1 扩展**：无需改 RTL，由 uop 拆分（`VEC_VVV→numOfUop=lmul`）天然支持；LMUL=2（32 INT8→8 INT32）实测 8 lane 全对，报告见 docs《LMUL多寄存器扩展原理与验证》。
+  - [x] **GEMV 线性层端到端**：vqdot 用于量化线性层（4×4 tile + 权重重排 + 输入广播），实测 vqdot 85 cyc vs 标准 RVV 240 cyc，**端到端 2.82x**，报告见 docs《GEMV线性层端到端加速报告》。
 
 **阶段三延迟结果（VLEN=128，16×INT8）**：
 
@@ -108,7 +110,8 @@ make ARCH=riscv64-xs CROSS_COMPILE=riscv64-unknown-elf-
 ```bash
 bash $VDOT_HOME/build_simv.sh    # 产物 build/simv
 bash $VDOT_HOME/run_vqdot.sh     # 功能：HIT GOOD TRAP、零 different
-bash $VDOT_HOME/run_vbench.sh    # 延迟：输出端到端 + 纯计算周期与加速比
+bash $VDOT_HOME/run_vbench.sh    # 点积延迟：端到端 + 纯计算周期与加速比
+bash $VDOT_HOME/run_vgemv.sh    # GEMV 线性层：端到端 2.82x
 ```
 
 ## 6. 设计要点与最关键的一个坑
