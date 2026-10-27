@@ -1,0 +1,214 @@
+SET XS_PROJECT_ROOT: /team/asc/sun.yingjie/Desktop/vdot/xs-env
+SET NOOP_HOME (XiangShan RTL Home): /team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan
+SET NEMU_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU
+SET AM_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am
+SET DRAMSIM3_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/DRAMsim3
+workload = /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vqdot16/build/vqdot16-riscv64-xs.bin
++ ./simv +workload=/team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vqdot16/build/vqdot16-riscv64-xs.bin +diff=/team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+Info: [VCS_SAVE_RESTORE_INFO] ASLR (Address Space Layout Randomization) is detected on the machine. To enable $save functionality, ASLR will be switched off and simv re-executed.
+Please use '-no_save' simv switch to avoid re-execution or '-suppress=ASLR_DETECTED_INFO' to suppress this message.
+Chronologic VCS simulator copyright 1991-2023
+Contains Synopsys proprietary information.
+Compiler version V-2023.12-SP1_Full64; Runtime version V-2023.12-SP1_Full64;  Oct 28 07:22 2026
+ram image:/team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vqdot16/build/vqdot16-riscv64-xs.bin
+diff-test ref so:/team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+Core  x's Commit SHA is: a4eeaabb4c, dirty: 1
+simv compiled at Oct 27 2026, 21:10:35
+Using simulated 8386560MB RAM
+The image is /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vqdot16/build/vqdot16-riscv64-xs.bin
+Using simulated 1048576B flash
+The reference model is /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+The first instruction of core 0 has commited. Difftest enabled. 
+int16 ss PASS
+int16 su PASS
+int16 uu PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+int16 ss rand PASS
+int16 su rand PASS
+int16 uu rand PASS
+=== INT16 vqdot all done ===
+Core 0: [32mHIT GOOD TRAP at pc = 0x80000538
+[0m[35mCore-0 instrCnt = 188,590, cycleCnt = 442,625, IPC = 0.426072
+[0mDIFFTEST WORKLOAD DONE at cycle               442632
+$finish called from file "/team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan/difftest/src/test/vsrc/vcs/DifftestEndpoint.sv", line 400.
+$finish at simulation time               885365
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 885365 ns
+CPU Time:   1204.350 seconds;       Data structure size:  47.9Mb
+Wed Oct 28 07:42:45 2026

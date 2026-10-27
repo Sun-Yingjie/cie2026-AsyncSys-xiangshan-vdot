@@ -1,10 +1,10 @@
 /***************************************************************************************
  * CIE2026 AsyncSys - vqdot.vv（对标 SiFive Xsfvqdotq）NEMU golden
  *
- * 支持两种 SEW（SiFive 提案第 4 页 NOTE 定义的变体）：
+ * 支持三种 SEW（SiFive 提案第 4 页 NOTE 定义的变体）：
  *   SEW=32（vsew=2）：每个 32bit 元素 packed 4 个 8bit 子元素 -> 累加到 32bit（标准）
- *   SEW=16（vsew=1）：每个 16bit 元素 packed 4 个 4bit 子元素 -> 累加到 16bit（本项目
- *                     实现 SiFive 预留的 INT4 未来变体）
+ *   SEW=16（vsew=1）：每个 16bit 元素 packed 4 个 4bit 子元素 -> 累加到 16bit（INT4 变体）
+ *   SEW=64（vsew=3）：每个 64bit 元素 packed 4 个 16bit 子元素 -> 累加到 64bit（INT16 变体）
  *
  * 通用语义（每组 4 个子元素，quad-widening）：
  *   vd[i] = old_vd[i] + Σ_{k=0..3} sign_extend(vs1[i][k]) * sign_extend(vs2[i][k])
@@ -15,7 +15,7 @@
  *   vqdotsu : vs2 signed   × vs1 unsigned
  *
  * 元素以 EEW=SEW 经 get_vreg/set_vreg 访问，天然支持 LMUL；并按 RVV 规范处理
- * vm 掩码（vma）与 tail（vta）。SEW 不是 16/32 时触发非法指令。
+ * vm 掩码（vma）与 tail（vta）。SEW 不是 16/32/64 时触发非法指令。
  ***************************************************************************************/
 
 #include <common.h>
@@ -31,18 +31,33 @@ static inline int32_t sext4(uint8_t e) {
   return (e & 0x8) ? (int32_t)(e) - 16 : (int32_t)e;
 }
 
+/* 取一个子元素（subbits 宽），按是否有符号扩展为 int64_t */
+static inline int64_t sub_elem(uint64_t word, int k, int subbits,
+                               int isInt4, int signed_) {
+  uint64_t submask = (subbits == 64) ? ~0ULL : ((1ULL << subbits) - 1);
+  uint64_t raw = (word >> (subbits * k)) & submask;
+  if (!signed_) return (int64_t)raw;
+  if (isInt4) return (int64_t)sext4((uint8_t)raw);
+  if (subbits == 8)  return (int64_t)(int8_t)raw;
+  if (subbits == 16) return (int64_t)(int16_t)raw;
+  return (int64_t)raw; /* 不会发生 */
+}
+
 static inline void vqdot_core(Decode *s, int vs2_signed, int vs1_signed) {
   require_vector(true);
   vector_vvv_check(s, true);
-  /* SEW=32 -> int8（vsew=2）；SEW=16 -> int4（vsew=1）；其余非法 */
-  int isInt4;
-  if (vtype->vsew == 2)      isInt4 = 0;
-  else if (vtype->vsew == 1) isInt4 = 1;
+
+  /* mode: 0=int8(SEW32), 1=int4(SEW16), 2=int16(SEW64)；其余非法 */
+  int mode;
+  if (vtype->vsew == 2)      mode = 0;
+  else if (vtype->vsew == 1) mode = 1;
+  else if (vtype->vsew == 3) mode = 2;
   else { longjmp_exception(EX_II); return; }
 
-  const int subbits = isInt4 ? 4 : 8;
-  const uint64_t submask = isInt4 ? 0xfu : 0xffu;
-  const uint64_t accmask = isInt4 ? 0xffffu : 0xffffffffu;
+  const int isInt4 = (mode == 1);
+  const int subbits = mode == 0 ? 8 : (mode == 1 ? 4 : 16);
+  const uint64_t accmask = mode == 0 ? 0xffffffffULL
+                         : (mode == 1 ? 0xffffULL : 0xffffffffffffffffULL);
 
   check_vstart_exception(s);
   if (check_vstart_ignore(s)) {
@@ -69,23 +84,15 @@ static inline void vqdot_core(Decode *s, int vs2_signed, int vs1_signed) {
     get_vreg(id_src2->reg, idx, &b,    vtype->vsew, vtype->vlmul, 0, 1); /* vs2 lane */
     get_vreg(id_dest->reg, idx, &oldv, vtype->vsew, vtype->vlmul, 1, 1); /* vd old   */
 
-    int32_t acc = 0;
+    int64_t acc = 0;
     for (int k = 0; k < 4; k++) {
-      uint8_t e1 = (uint8_t)((a >> (subbits * k)) & submask);
-      uint8_t e2 = (uint8_t)((b >> (subbits * k)) & submask);
-      int32_t x1, x2;
-      if (isInt4) {
-        x1 = vs1_signed ? sext4(e1) : (int32_t)e1;
-        x2 = vs2_signed ? sext4(e2) : (int32_t)e2;
-      } else {
-        x1 = vs1_signed ? (int32_t)(int8_t)e1 : (int32_t)e1;
-        x2 = vs2_signed ? (int32_t)(int8_t)e2 : (int32_t)e2;
-      }
+      int64_t x1 = sub_elem((uint64_t)a, k, subbits, isInt4, vs1_signed);
+      int64_t x2 = sub_elem((uint64_t)b, k, subbits, isInt4, vs2_signed);
       acc += x1 * x2;
     }
-    int32_t old = (int32_t)(oldv & accmask);
-    int32_t res = old + acc; /* 累加器位宽二补数自然回绕 */
-    set_vreg(id_dest->reg, idx, (rtlreg_t)(res & accmask),
+    int64_t old = (int64_t)(oldv & accmask);
+    int64_t res = old + acc; /* 累加器位宽二补数自然回绕 */
+    set_vreg(id_dest->reg, idx, (rtlreg_t)((uint64_t)res & accmask),
              vtype->vsew, vtype->vlmul, 1);
   }
 
