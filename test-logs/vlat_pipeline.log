@@ -1,0 +1,33 @@
+SET XS_PROJECT_ROOT: /team/asc/sun.yingjie/Desktop/vdot/xs-env
+SET NOOP_HOME (XiangShan RTL Home): /team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan
+SET NEMU_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU
+SET AM_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am
+SET DRAMSIM3_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/DRAMsim3
+Info: [VCS_SAVE_RESTORE_INFO] ASLR (Address Space Layout Randomization) is detected on the machine. To enable $save functionality, ASLR will be switched off and simv re-executed.
+Please use '-no_save' simv switch to avoid re-execution or '-suppress=ASLR_DETECTED_INFO' to suppress this message.
+Chronologic VCS simulator copyright 1991-2023
+Contains Synopsys proprietary information.
+Compiler version V-2023.12-SP1_Full64; Runtime version V-2023.12-SP1_Full64;  Oct 28 10:58 2026
+ram image:/team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vlat/build/vlat-riscv64-xs.bin
+diff-test ref so:/team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+Core  x's Commit SHA is: a4eeaabb4c, dirty: 1
+simv compiled at Oct 27 2026, 21:10:35
+Using simulated 8386560MB RAM
+The image is /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vlat/build/vlat-riscv64-xs.bin
+Using simulated 1048576B flash
+The reference model is /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+The first instruction of core 0 has commited. Difftest enabled. 
+vqdot independent: 96 instr / 168 cyc = 1.750 CPI
+vqdot dependency : 96 instr / 669 cyc = 6.969 CPI
+baseline seq     : 96 seq   / 3205 cyc = 33.385 cyc/seq
+vqdot execution latency = 2 cycles; dependent-issue latency = ~7 cycles
+VLAT DONE
+Core 0: [32mHIT GOOD TRAP at pc = 0x8000030c
+[0m[35mCore-0 instrCnt = 9,679, cycleCnt = 32,434, IPC = 0.298421
+[0mDIFFTEST WORKLOAD DONE at cycle                32441
+$finish called from file "/team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan/difftest/src/test/vsrc/vcs/DifftestEndpoint.sv", line 400.
+$finish at simulation time                64983
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 64983 ns
+CPU Time:     92.140 seconds;       Data structure size:  47.9Mb
+Wed Oct 28 11:00:12 2026
