@@ -8,7 +8,7 @@
 | 作者 | 孙英杰（兰州大学 信息科学与工程学院） |
 | 基线处理器 | 香山「昆明湖」V2（`kunminghu-v2`，RVV 1.0，VLEN=128） |
 | 命题 / 社区 | 北京开源芯片研究院（香山）· OpenXiangShan |
-| 当前状态 | **三阶段全部完成，Difftest 全绿；INT4/INT8/INT16 三档点积；GEMV 2.82x/3.06x；端到端 2 层 MLP 2.40x；分档面积 4.3k/5.4k/7.6k 门，合一 14.6k 门；支持 LMUL>1** |
+| 当前状态 | **三阶段全部完成，Difftest 全绿；INT4/INT8/INT16 三档点积；GEMV 2.82x/3.06x；端到端 2 层 MLP 2.40x；混合精度（INT4 层+INT8 层）2.14x；分档面积 4.3k/5.4k/7.6k 门，合一 14.6k 门；支持 LMUL>1** |
 
 ## 1. 项目简介
 
@@ -65,6 +65,8 @@ benchmark/
   gemv/                                     # INT8 量化 GEMV 端到端基准
   gemv4/                                    # INT4 量化 GEMV 端到端基准
   mlp/                                      # 端到端 2 层量化 MLP 推理（2.40x）
+  vmlp2/                                    # 混合精度 MLP（INT4 层+INT8 层，2.14x）
+  vlat/                                     # 微架构延迟/吞吐分析
 syn/                                        # DC 综合脚本/设计/面积时序报告
 docs/  ·  test-logs/
 ```
@@ -90,6 +92,7 @@ docs/  ·  test-logs/
   - [x] **INT16 点积扩展（SEW=64）**：补全 SiFive 映射的最高精度变体，4×int16→int64；运算核与 NEMU 三档参数化；3 类型×60 组随机 Difftest 全绿（183 PASS、18.8 万指令零 mismatch）。至此 SiFive 三档整数点积（INT4/INT8/INT16）全部打通。
   - [x] **端到端量化 MLP 推理**：用参数化 GEMV kernel（M=4、N 可变）堆叠 2 层 MLP（16→8→4，含 ReLU + 量化），对标 LLM FFN；vqdot 285 cyc vs 标准 RVV 685 cyc，**端到端 2.40x**，报告见 docs《端到端量化MLP推理加速报告》。
   - [x] **微架构延迟/吞吐深度分析（vlat）**：单指令执行延迟 **2 cyc**（2 级流水）、无依赖 back-to-back **1.75 CPI**（受 MinimalConfig 前端限制）、累加同一 vd 的依赖间隔 **7 cyc**（缺写回→发射 bypass）、标准 RVV 点积序列 **33.4 cyc**；即使最不利完全串行，vqdot 仍快约 4.7x。本质是把一条 13 指令的串行依赖链折叠为 1 条 2 级流水指令。报告见 docs《微架构延迟吞吐分析》。
+  - [x] **混合精度 MLP（INT4 层 + INT8 层，vmlp2）**：第一层 W4A4 用 INT4 vqdot（一条向量 8 输出）、层间 ReLU+量化、第二层 W8A8 用 INT8 vqdot（4 输出），对标真实 LLM 逐层混合精度；输出 `0 10 20 30` 与 golden 一致，vqdot 221 cyc vs 标准 RVV 474 cyc（**2.14x**），且比全 INT8（285 cyc）快 1.29x（第一层 GEMV 调用减半 + 权重压缩）。报告见 docs《混合精度MLP推理加速报告》。
 
 **阶段三延迟结果（VLEN=128，16×INT8）**：
 
@@ -135,6 +138,7 @@ bash $VDOT_HOME/run_vbench.sh    # 点积延迟：端到端 + 纯计算周期与
 bash $VDOT_HOME/run_vgemv.sh     # INT8 GEMV 线性层：端到端 2.82x
 bash $VDOT_HOME/run_vgemv4.sh    # INT4 GEMV 线性层：端到端 3.06x
 bash $VDOT_HOME/run_vmlp.sh      # 端到端 2 层 MLP 推理：2.40x
+bash $VDOT_HOME/run_vmlp2.sh     # 混合精度 MLP（INT4 层+INT8 层）：2.14x
 # 面积综合：cd $VDOT_HOME/syn_vdot && dc_shell -f syn2.tcl（5.4k 门，见 syn/）
 ```
 
