@@ -1,0 +1,39 @@
+SET XS_PROJECT_ROOT: /team/asc/sun.yingjie/Desktop/vdot/xs-env
+SET NOOP_HOME (XiangShan RTL Home): /team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan
+SET NEMU_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU
+SET AM_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am
+SET DRAMSIM3_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/DRAMsim3
+workload = /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vqdot/build/vqdot-riscv64-xs.bin
+diff ref = /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
++ ./simv +workload=/team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vqdot/build/vqdot-riscv64-xs.bin +diff=/team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+Info: [VCS_SAVE_RESTORE_INFO] ASLR (Address Space Layout Randomization) is detected on the machine. To enable $save functionality, ASLR will be switched off and simv re-executed.
+Please use '-no_save' simv switch to avoid re-execution or '-suppress=ASLR_DETECTED_INFO' to suppress this message.
+Chronologic VCS simulator copyright 1991-2023
+Contains Synopsys proprietary information.
+Compiler version V-2023.12-SP1_Full64; Runtime version V-2023.12-SP1_Full64;  Oct 28 10:20 2026
+ram image:/team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vqdot/build/vqdot-riscv64-xs.bin
+diff-test ref so:/team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+Core  x's Commit SHA is: a4eeaabb4c, dirty: 1
+simv compiled at Oct 27 2026, 21:10:35
+Using simulated 8386560MB RAM
+The image is /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vqdot/build/vqdot-riscv64-xs.bin
+Using simulated 1048576B flash
+The reference model is /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+The first instruction of core 0 has commited. Difftest enabled. 
+VMACC-REF: 100 200 300 400 (expect 100 200 300 400)
+DOT+OLD ss: 108 208 308 408 (expect 108 208 308 408)
+OLDONLY ss: 100 200 300 400 (expect 100 200 300 400)
+LMUL=2 PASS: -148 80 180 152 -4 -288 -700 -1240
+[ OK ] vqdot   ss: 10 -10 508 -512
+[ OK ] vqdotu  uu: 10 1020 1600 0
+[ OK ] vqdotsu su: 10 1020 -1020 -40
+VDOT All Tests PASS (3 boundary + 3x100 random groups)
+Core 0: [32mHIT GOOD TRAP at pc = 0x800006f2
+[0m[35mCore-0 instrCnt = 305,203, cycleCnt = 249,857, IPC = 1.221511
+[0mDIFFTEST WORKLOAD DONE at cycle               249864
+$finish called from file "/team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan/difftest/src/test/vsrc/vcs/DifftestEndpoint.sv", line 400.
+$finish at simulation time               499829
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 499829 ns
+CPU Time:   1518.890 seconds;       Data structure size:  47.9Mb
+Wed Oct 28 10:45:35 2026
