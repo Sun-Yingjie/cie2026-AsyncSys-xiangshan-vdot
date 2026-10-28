@@ -89,6 +89,7 @@ docs/  ·  test-logs/
   - [x] **INT4 点积扩展（SEW=16，W4 量化）**：补全 SiFive 提案预留的 INT4 变体，运算核参数化；3 类型×60 组随机 Difftest 全绿；点积 59 vs 110 cyc（1.86x）；**INT4 GEMV（W4 线性层）83 vs 254 cyc，3.06x**，报告见 docs《INT4点积扩展设计与验证》《INT4_GEMV线性层端到端加速报告》。
   - [x] **INT16 点积扩展（SEW=64）**：补全 SiFive 映射的最高精度变体，4×int16→int64；运算核与 NEMU 三档参数化；3 类型×60 组随机 Difftest 全绿（183 PASS、18.8 万指令零 mismatch）。至此 SiFive 三档整数点积（INT4/INT8/INT16）全部打通。
   - [x] **端到端量化 MLP 推理**：用参数化 GEMV kernel（M=4、N 可变）堆叠 2 层 MLP（16→8→4，含 ReLU + 量化），对标 LLM FFN；vqdot 285 cyc vs 标准 RVV 685 cyc，**端到端 2.40x**，报告见 docs《端到端量化MLP推理加速报告》。
+  - [x] **微架构延迟/吞吐深度分析（vlat）**：单指令执行延迟 **2 cyc**（2 级流水）、无依赖 back-to-back **1.75 CPI**（受 MinimalConfig 前端限制）、累加同一 vd 的依赖间隔 **7 cyc**（缺写回→发射 bypass）、标准 RVV 点积序列 **33.4 cyc**；即使最不利完全串行，vqdot 仍快约 4.7x。本质是把一条 13 指令的串行依赖链折叠为 1 条 2 级流水指令。报告见 docs《微架构延迟吞吐分析》。
 
 **阶段三延迟结果（VLEN=128，16×INT8）**：
 
