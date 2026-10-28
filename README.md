@@ -8,7 +8,7 @@
 | 作者 | 孙英杰（兰州大学 信息科学与工程学院） |
 | 基线处理器 | 香山「昆明湖」V2（`kunminghu-v2`，RVV 1.0，VLEN=128） |
 | 命题 / 社区 | 北京开源芯片研究院（香山）· OpenXiangShan |
-| 当前状态 | **三阶段全部完成，Difftest 全绿；INT4/INT8/INT16 三档点积；GEMV 2.82x/3.06x；端到端 2 层 MLP 2.40x；面积约 5.4k 门；支持 LMUL>1** |
+| 当前状态 | **三阶段全部完成，Difftest 全绿；INT4/INT8/INT16 三档点积；GEMV 2.82x/3.06x；端到端 2 层 MLP 2.40x；分档面积 4.3k/5.4k/7.6k 门，合一 14.6k 门；支持 LMUL>1** |
 
 ## 1. 项目简介
 
@@ -85,7 +85,7 @@ docs/  ·  test-logs/
   - [x] 延迟对比（见下表），报告见 docs《阶段三延迟加速比分析报告》。
   - [x] **LMUL>1 扩展**：无需改 RTL，由 uop 拆分（`VEC_VVV→numOfUop=lmul`）天然支持；LMUL=2（32 INT8→8 INT32）实测 8 lane 全对，报告见 docs《LMUL多寄存器扩展原理与验证》。
   - [x] **GEMV 线性层端到端**：vqdot 用于量化线性层（4×4 tile + 权重重排 + 输入广播），实测 vqdot 85 cyc vs 标准 RVV 240 cyc，**端到端 2.82x**，报告见 docs《GEMV线性层端到端加速报告》。
-  - [x] **面积与时序评估**：Design Compiler 综合 VDot64b（SMIC 0.18um），总面积 **40,748 µm² ≈ 5.4k NAND2 门**（8 乘法器 + 加法树 + 两级流水），关键路径 1.77ns；以约 5.4k 门换 2.8x~4.6x 加速，报告见 docs《面积与时序评估报告》。
+  - [x] **分档面积与时序评估（compile_ultra，SMIC 0.18um，均 129 FF）**：INT4 **32,529 µm²/4.3k 门**、INT8 **40,663/5.4k 门**、INT16 **57,428/7.6k 门**；合一三档复用 **109,597 µm²/14.6k 门**（比三档独立之和省 16%，共享一套流水）；全部 2ns 周期 slack MET。详见 docs《精度面积性能三维权衡分析》、syn/modes/。
   - [x] **INT4 点积扩展（SEW=16，W4 量化）**：补全 SiFive 提案预留的 INT4 变体，运算核参数化；3 类型×60 组随机 Difftest 全绿；点积 59 vs 110 cyc（1.86x）；**INT4 GEMV（W4 线性层）83 vs 254 cyc，3.06x**，报告见 docs《INT4点积扩展设计与验证》《INT4_GEMV线性层端到端加速报告》。
   - [x] **INT16 点积扩展（SEW=64）**：补全 SiFive 映射的最高精度变体，4×int16→int64；运算核与 NEMU 三档参数化；3 类型×60 组随机 Difftest 全绿（183 PASS、18.8 万指令零 mismatch）。至此 SiFive 三档整数点积（INT4/INT8/INT16）全部打通。
   - [x] **端到端量化 MLP 推理**：用参数化 GEMV kernel（M=4、N 可变）堆叠 2 层 MLP（16→8→4，含 ReLU + 量化），对标 LLM FFN；vqdot 285 cyc vs 标准 RVV 685 cyc，**端到端 2.40x**，报告见 docs《端到端量化MLP推理加速报告》。

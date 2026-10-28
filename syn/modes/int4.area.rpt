@@ -1,0 +1,44 @@
+ 
+****************************************
+Report : area
+Design : VDot64b
+Version: V-2023.12-SP3
+Date   : Wed Oct 28 10:07:08 2026
+****************************************
+
+Information: Updating design information... (UID-85)
+Library(s) Used:
+
+    scc018ug_uhd_rvt_tt_v1p8_25c_ccs (File: /mnt/shared/pdk/SMIC/0.18um/db/scc018ug_uhd_rvt_tt_v1p8_25c_ccs.db)
+
+Number of ports:                          499
+Number of nets:                          2218
+Number of cells:                         1716
+Number of combinational cells:           1587
+Number of sequential cells:               129
+Number of macros/black boxes:               0
+Number of buf/inv:                        344
+Number of references:                      34
+
+Combinational area:              27076.224467
+Buf/Inv area:                     1941.811264
+Noncombinational area:            5452.876854
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:                 32529.101321
+Total area:                 undefined
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area            Local cell area
+                                  -------------------  ----------------------------- 
+Hierarchical cell                 Absolute    Percent  Combi-      Noncombi-  Black-
+                                  Total       Total    national    national   boxes   Design
+--------------------------------  ----------  -------  ----------  ---------  ------  ---------
+VDot64b                           32529.1013    100.0  27076.2245  5452.8769  0.0000  VDot64b
+--------------------------------  ----------  -------  ----------  ---------  ------  ---------
+Total                                                  27076.2245  5452.8769  0.0000
+
+1

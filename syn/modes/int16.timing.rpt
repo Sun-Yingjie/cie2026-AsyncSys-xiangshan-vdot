@@ -1,0 +1,102 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 3
+Design : VDot64b
+Version: V-2023.12-SP3
+Date   : Wed Oct 28 10:07:37 2026
+****************************************
+
+Operating Conditions: tt_v1p8_25c   Library: scc018ug_uhd_rvt_tt_v1p8_25c_ccs
+Wire Load Model Mode: top
+
+  Startpoint: fireS1_last_r_reg
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: s2_reg[3] (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  fireS1_last_r_reg/CK (DQUHDV1)           0.00       0.00 r
+  fireS1_last_r_reg/Q (DQUHDV1)            1.60       1.60 r
+  U163/Z (CLKMUX2UHDV1)                    0.14       1.74 f
+  s2_reg[3]/D (DRNQUHDV1)                  0.00       1.74 f
+  data arrival time                                   1.74
+
+  clock clk (rise edge)                    2.00       2.00
+  clock network delay (ideal)              0.00       2.00
+  clock uncertainty                       -0.10       1.90
+  s2_reg[3]/CK (DRNQUHDV1)                 0.00       1.90 r
+  library setup time                      -0.11       1.79
+  data required time                                  1.79
+  -----------------------------------------------------------
+  data required time                                  1.79
+  data arrival time                                  -1.74
+  -----------------------------------------------------------
+  slack (MET)                                         0.05
+
+
+  Startpoint: fireS1_last_r_reg
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: s2_reg[2] (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  fireS1_last_r_reg/CK (DQUHDV1)           0.00       0.00 r
+  fireS1_last_r_reg/Q (DQUHDV1)            1.60       1.60 r
+  U164/Z (CLKMUX2UHDV1)                    0.14       1.74 f
+  s2_reg[2]/D (DRNQUHDV1)                  0.00       1.74 f
+  data arrival time                                   1.74
+
+  clock clk (rise edge)                    2.00       2.00
+  clock network delay (ideal)              0.00       2.00
+  clock uncertainty                       -0.10       1.90
+  s2_reg[2]/CK (DRNQUHDV1)                 0.00       1.90 r
+  library setup time                      -0.11       1.79
+  data required time                                  1.79
+  -----------------------------------------------------------
+  data required time                                  1.79
+  data arrival time                                  -1.74
+  -----------------------------------------------------------
+  slack (MET)                                         0.05
+
+
+  Startpoint: fireS1_last_r_reg
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: s2_reg[1] (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  fireS1_last_r_reg/CK (DQUHDV1)           0.00       0.00 r
+  fireS1_last_r_reg/Q (DQUHDV1)            1.60       1.60 r
+  U165/Z (CLKMUX2UHDV1)                    0.14       1.74 f
+  s2_reg[1]/D (DRNQUHDV1)                  0.00       1.74 f
+  data arrival time                                   1.74
+
+  clock clk (rise edge)                    2.00       2.00
+  clock network delay (ideal)              0.00       2.00
+  clock uncertainty                       -0.10       1.90
+  s2_reg[1]/CK (DRNQUHDV1)                 0.00       1.90 r
+  library setup time                      -0.11       1.79
+  data required time                                  1.79
+  -----------------------------------------------------------
+  data required time                                  1.79
+  data arrival time                                  -1.74
+  -----------------------------------------------------------
+  slack (MET)                                         0.05
+
+
+1
