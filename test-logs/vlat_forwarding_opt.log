@@ -1,0 +1,36 @@
+SET XS_PROJECT_ROOT: /team/asc/sun.yingjie/Desktop/vdot/xs-env
+SET NOOP_HOME (XiangShan RTL Home): /team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan
+SET NEMU_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU
+SET AM_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am
+SET DRAMSIM3_HOME: /team/asc/sun.yingjie/Desktop/vdot/xs-env/DRAMsim3
+Info: [VCS_SAVE_RESTORE_INFO] ASLR (Address Space Layout Randomization) is detected on the machine. To enable $save functionality, ASLR will be switched off and simv re-executed.
+Please use '-no_save' simv switch to avoid re-execution or '-suppress=ASLR_DETECTED_INFO' to suppress this message.
+Chronologic VCS simulator copyright 1991-2023
+Contains Synopsys proprietary information.
+Compiler version V-2023.12-SP1_Full64; Runtime version V-2023.12-SP1_Full64;  Oct 30 05:55 2026
+ram image:/team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vlat/build/vlat-riscv64-xs.bin
+diff-test ref so:/team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+Core  x's Commit SHA is: 79d8dbecfe, dirty: 1
+simv compiled at Oct 27 2026, 21:10:35
+Using simulated 8386560MB RAM
+The image is /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vlat/build/vlat-riscv64-xs.bin
+Using simulated 1048576B flash
+The reference model is /team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+The first instruction of core 0 has commited. Difftest enabled. 
+vqdot independent: 96 instr / 166 cyc = 1.729 CPI
+vqdot dependency : 96 instr / 329 cyc = 3.427 CPI (loop, incl. scalar overhead)
+vqdot unroll64  : 64 instr / 157 cyc = 2.453 cyc/instr
+vqdot unroll128 : 128 instr / 349 cyc = 2.727 cyc/instr
+vqdot dependent-issue steady-state interval = 3.00 cycles (marginal)
+baseline seq     : 96 seq   / 2544 cyc = 26.500 cyc/seq
+vqdot execution latency = 2 cycles
+VLAT DONE
+Core 0: [32mHIT GOOD TRAP at pc = 0x800006e0
+[0m[35mCore-0 instrCnt = 15,286, cycleCnt = 50,228, IPC = 0.304332
+[0mDIFFTEST WORKLOAD DONE at cycle                50235
+$finish called from file "/team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan/difftest/src/test/vsrc/vcs/DifftestEndpoint.sv", line 400.
+$finish at simulation time               100571
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 100571 ns
+CPU Time:    131.890 seconds;       Data structure size:  48.6Mb
+Fri Oct 30 05:57:59 2026
