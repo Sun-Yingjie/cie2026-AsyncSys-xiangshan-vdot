@@ -8,7 +8,7 @@
 | 作者 | 孙英杰（兰州大学 信息科学与工程学院） |
 | 基线处理器 | 香山「昆明湖」V2（`kunminghu-v2`，RVV 1.0，VLEN=128） |
 | 命题 / 社区 | 北京开源芯片研究院（香山）· OpenXiangShan |
-| 当前状态 | **三阶段全部完成，Difftest 全绿；INT4/INT8/INT16 三档点积；GEMV 2.82x/3.06x；向量累加旁路优化（累加间隔 6.97→3.00 cyc，2.32x），旁路优化后 2 层 MLP 263/535 cyc（2.03x）；混合精度 2.14x；分档面积 4.3k/5.4k/7.6k 门，合一 14.6k 门；支持 LMUL>1** |
+| 当前状态 | **三阶段全部完成，Difftest 全绿；INT4/INT8/INT16 三档点积；GEMV 2.82x/3.06x；向量累加旁路优化（累加间隔 6.97→3.00 cyc，2.32x），旁路优化后 2 层 MLP 263/535 cyc（2.03x）；混合精度 2.14x；深化 3 层残差网络 vblock 1101/2618 cyc（2.38x）；分档面积 4.3k/5.4k/7.6k 门，合一 14.6k 门；支持 LMUL>1** |
 
 ## 1. 项目简介
 
@@ -66,6 +66,7 @@ benchmark/
   gemv4/                                    # INT4 量化 GEMV 端到端基准
   mlp/                                      # 端到端 2 层量化 MLP 推理（旁路优化后 2.03x）
   vmlp2/                                    # 混合精度 MLP（INT4 层+INT8 层，2.14x）
+  vblock/                                   # 深化 3 层量化网络（32→16→16→8，残差，2.38x）
   vlat/                                     # 微架构延迟/吞吐分析
 syn/                                        # DC 综合脚本/设计/面积时序报告
 docs/  ·  test-logs/
@@ -94,6 +95,7 @@ docs/  ·  test-logs/
   - [x] **微架构延迟/吞吐深度分析（vlat）**：单指令执行延迟 **2 cyc**（2 级流水）、无依赖 back-to-back **1.73 CPI**（受 MinimalConfig 前端限制）、累加同一 vd 的依赖间隔经旁路优化从 **6.97 → 3.00 cyc**、标准 RVV 点积序列 **33.4 cyc**；即使最不利完全串行，vqdot 仍快约 4.7x。本质是把一条 13 指令的串行依赖链折叠为 1 条 2 级流水指令。报告见 docs《微架构延迟吞吐分析》。
   - [x] **向量累加旁路（forwarding）优化**：补全 VF 调度器 IQ 唤醒（源 VFEX0/2 → 汇 VFEX0–4）激活既有 `bypass2`，累加稳态间隔 6.97→3.00 cyc（2.32x）；唤醒汇不纳入 VLSU（store 非瓶颈、走完整写回），vlat/vqdot/vmlp 三项回归 HIT GOOD TRAP、零 mismatch。报告见 docs《vdot累加旁路forwarding优化报告》。
   - [x] **混合精度 MLP（INT4 层 + INT8 层，vmlp2）**：第一层 W4A4 用 INT4 vqdot（一条向量 8 输出）、层间 ReLU+量化、第二层 W8A8 用 INT8 vqdot（4 输出），对标真实 LLM 逐层混合精度；输出 `0 10 20 30` 与 golden 一致，vqdot 221 cyc vs 标准 RVV 474 cyc（**2.14x**），且比全 INT8（285 cyc）快 1.29x（第一层 GEMV 调用减半 + 权重压缩）。报告见 docs《混合精度MLP推理加速报告》。
+  - [x] **深化端到端 LLM 推理 demo（vblock）**：3 层量化网络（32→16→16→8，共 10 次 GEMV）并在同维层间加入残差连接（int32 域相加后再 ReLU/量化），kernel 零修改复用；含残差 golden 逐层比对，vqdot 1101 cyc vs baseline 2618 cyc（**2.38x**），HIT GOOD TRAP、零 mismatch。报告见 docs《深化端到端LLM推理demo报告》。
 
 **阶段三延迟结果（VLEN=128，16×INT8）**：
 
@@ -140,6 +142,7 @@ bash $VDOT_HOME/run_vgemv.sh     # INT8 GEMV 线性层：端到端 2.82x
 bash $VDOT_HOME/run_vgemv4.sh    # INT4 GEMV 线性层：端到端 3.06x
 bash $VDOT_HOME/run_vmlp.sh      # 端到端 2 层 MLP 推理：旁路优化后 2.03x
 bash $VDOT_HOME/run_vmlp2.sh     # 混合精度 MLP（INT4 层+INT8 层）：2.14x
+bash $VDOT_HOME/run_vblock.sh    # 深化 3 层量化网络（32→16→16→8，残差）：2.38x
 # 面积综合：cd $VDOT_HOME/syn_vdot && dc_shell -f syn2.tcl（5.4k 门，见 syn/）
 ```
 
