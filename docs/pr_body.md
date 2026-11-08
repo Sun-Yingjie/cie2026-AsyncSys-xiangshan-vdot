@@ -15,7 +15,7 @@ RVV 1.0 没有融合点积指令，标准向量实现一个点积需要 `vwmul +
 - [x] **阶段一：环境部署** —— 对齐 kunminghu-v2 锁定 commit，编译 NEMU 参考模型，VCS 编译 MinimalConfig simv，hello 二进制 Difftest 零 mismatch、HIT GOOD TRAP。
 - [x] **阶段二：vdot 实现** —— 译码/配置层（rocket-chip Instructions、VecDecoder、XSDecode、DecodeUnit）、运算核 VDot64b（三档参数化、两级流水）、NEMU 参考模型（三档 vsew），端到端 Difftest 全绿。
 - [x] **阶段三：协同仿真与评估** —— 标准 RVV 基线 kernel、延迟/吞吐对比、LMUL 扩展、GEMV 线性层、端到端量化 MLP、分档面积综合、微架构深度分析。
-- [x] **扩展：向量累加旁路优化** —— 补全 VF 唤醒激活既有 `bypass2`，并修正 VF→mem 跨调度器 store 数据源；累加间隔 7.00→3.00 cycle，三项回归全绿。
+- [x] **扩展：向量累加旁路优化** —— 补全 VF 唤醒激活既有 `bypass2`（源 VFEX0/2 → 汇 VFEX0–4）；store 非瓶颈、走完整写回，保证正确性；累加间隔 6.97→3.00 cycle，三项回归全绿。
 
 ## 三、性能结果（VCS 仿真，VLEN=128）
 
@@ -27,9 +27,9 @@ RVV 1.0 没有融合点积指令，标准向量实现一个点积需要 `vwmul +
 | INT4 点积（W4） | 59 cyc | 110 cyc | 1.86x |
 | INT4 GEMV（W4 线性层） | 83 cyc | 254 cyc | **3.06x** |
 | INT16 点积 | 67 cyc | 83 cyc | 1.24x |
-| 2 层量化 MLP（**已含旁路优化**） | **252 cyc** | **527 cyc** | **2.09x** |
+| 2 层量化 MLP（**已含旁路优化**） | **263 cyc** | **535 cyc** | **2.03x** |
 
-> 注：前 6 行为点积指令本身的融合收益（旁路优化前测得）；MLP 行为补全 VF 唤醒、激活 `bypass2` 后实测。旁路优化使 vqdot MLP 从 285→252、标准 RVV MLP 从 685→527——**两类实现的绝对周期都下降**，详见《vdot累加旁路forwarding优化报告》。
+> 注：前 6 行为点积指令本身的融合收益（旁路优化前测得）；MLP 行为补全 VF 唤醒、激活 `bypass2` 后实测。旁路优化把累加环路从约 7 拍压到 3 拍，vqdot 与标准 RVV 的 MLP 绝对周期均显著下降，详见《vdot累加旁路forwarding优化报告》。
 
 ## 四、面积与时序（SMIC 0.18um，compile_ultra，均 129 FF，slack MET）
 
@@ -46,10 +46,12 @@ RVV 1.0 没有融合点积指令，标准向量实现一个点积需要 `vwmul +
 
 - 单指令**执行延迟 2 cyc**（两级流水），完全流水化；
 - 无依赖 back-to-back **1.73 CPI**（受 MinimalConfig 前端限制，非运算核瓶颈）；
-- 累加同一 vd 的**稳态发射间隔 3.00 cycle**（补全 VF 唤醒、激活 `bypass2` 后；优化前为 7.00 cycle）；
+- 累加同一 vd 的**稳态发射间隔 3.00 cycle**（补全 VF 唤醒、激活 `bypass2` 后；优化前为 6.97 cycle）；
 - 标准 RVV 点积序列约 33.4 cyc，**即使最不利完全串行，vqdot 仍快约 4.7x**。
 
-**根因与优化（纠正初判）**：香山本有三级转发（forward / bypass / bypass2），`bypass2` 即向量专用跨执行单元旁路；但上游 `Parameters.scala` 从未给 VF 调度器配置 IQ 唤醒配对，导致 `bypass2` 对整个向量域休眠（源/汇均为 0），vqdot/VMACC/VFMA 等累加都只能走完整写回（约 7 拍）。补全 VF 唤醒组（VFEX0/VFEX2 → VFEX0-4、VLSU0/1）后旁路激活，间隔降到 3 拍；这是**整个 VF 调度器共性问题，非 vdot 特有**。
+**根因与优化（纠正初判）**：香山本有三级转发（forward / bypass / bypass2），`bypass2` 即向量专用跨执行单元旁路；但上游 `Parameters.scala` 从未给 VF 调度器配置 IQ 唤醒配对，导致 `bypass2` 对整个向量域休眠（源/汇均为 0），vqdot/VMACC/VFMA 等累加都只能走完整写回（约 7 拍）。补全 VF 唤醒组（VFEX0/VFEX2 → VFEX0–4）后旁路激活，间隔降到 3 拍；这是**整个 VF 调度器共性问题，非 vdot 特有**。
+
+**正确性边界**：唤醒汇只接 VF 算术单元（VFEX0–4），不纳入向量 load/store 单元（VLSU）。实测发现把 VLSU 纳入提前唤醒会让 store 比结果就绪早约 2 拍、误读在途数据；而 store 读 vd 并非 GEMV/MLP 瓶颈，故让其走完整写回，既保证正确性，又不损失点积主环路收益。
 
 **本质**：vqdot 把一条约 13 指令的串行归约依赖链，折叠为 1 条两级流水指令；而边缘 LLM 的 GEMV/FFN 是累加密集负载，消费者几乎总是下一条累加指令，因此缩短"结果→再消费"环路（旁路）与融合指令本身同等关键。点积融合收益随单向量内归约子元素数量增长，故低比特量化（W4/W8）最受益。
 

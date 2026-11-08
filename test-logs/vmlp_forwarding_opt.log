@@ -9,10 +9,10 @@ Info: [VCS_SAVE_RESTORE_INFO] ASLR (Address Space Layout Randomization) is detec
 Please use '-no_save' simv switch to avoid re-execution or '-suppress=ASLR_DETECTED_INFO' to suppress this message.
 Chronologic VCS simulator copyright 1991-2023
 Contains Synopsys proprietary information.
-Compiler version V-2023.12-SP1_Full64; Runtime version V-2023.12-SP1_Full64;  Oct 30 02:30 2026
+Compiler version V-2023.12-SP1_Full64; Runtime version V-2023.12-SP1_Full64;  Nov  8 09:45 2026
 ram image:/team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vmlp/build/vmlp-riscv64-xs.bin
 diff-test ref so:/team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
-Core  x's Commit SHA is: 79d8dbecfe, dirty: 1
+Core  x's Commit SHA is: 4fb452589b, dirty: 1
 simv compiled at Oct 27 2026, 21:10:35
 Using simulated 8386560MB RAM
 The image is /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vmlp/build/vmlp-riscv64-xs.bin
@@ -22,13 +22,13 @@ The first instruction of core 0 has commited. Difftest enabled.
 hidden(int8 after ReLU): 0 0 3 3 3 6 6 6
 MLP vqdot PASS: 0 10 20 30
 MLP baseline PASS: 0 10 20 30
-MLP forward (2 layers, 16->8->4): vqdot 252 cyc vs baseline 527 cyc, 2.09x
+MLP forward (2 layers, 16->8->4): vqdot 263 cyc vs baseline 535 cyc, 2.03x
 Core 0: [32mHIT GOOD TRAP at pc = 0x800006d8
-[0m[35mCore-0 instrCnt = 25,143, cycleCnt = 43,259, IPC = 0.581220
-[0mDIFFTEST WORKLOAD DONE at cycle                43266
+[0m[35mCore-0 instrCnt = 25,143, cycleCnt = 43,683, IPC = 0.575579
+[0mDIFFTEST WORKLOAD DONE at cycle                43690
 $finish called from file "/team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan/difftest/src/test/vsrc/vcs/DifftestEndpoint.sv", line 400.
-$finish at simulation time                86633
+$finish at simulation time                87481
            V C S   S i m u l a t i o n   R e p o r t 
-Time: 86633 ns
-CPU Time:    192.170 seconds;       Data structure size:  48.6Mb
-Fri Oct 30 02:33:29 2026
+Time: 87481 ns
+CPU Time:    173.900 seconds;       Data structure size:  48.3Mb
+Sun Nov  8 09:48:51 2026

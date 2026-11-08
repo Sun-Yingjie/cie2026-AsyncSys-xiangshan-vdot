@@ -8,7 +8,7 @@
 | 作者 | 孙英杰（兰州大学 信息科学与工程学院） |
 | 基线处理器 | 香山「昆明湖」V2（`kunminghu-v2`，RVV 1.0，VLEN=128） |
 | 命题 / 社区 | 北京开源芯片研究院（香山）· OpenXiangShan |
-| 当前状态 | **三阶段全部完成，Difftest 全绿；INT4/INT8/INT16 三档点积；GEMV 2.82x/3.06x；端到端 2 层 MLP 2.40x；混合精度（INT4 层+INT8 层）2.14x；分档面积 4.3k/5.4k/7.6k 门，合一 14.6k 门；支持 LMUL>1** |
+| 当前状态 | **三阶段全部完成，Difftest 全绿；INT4/INT8/INT16 三档点积；GEMV 2.82x/3.06x；向量累加旁路优化（累加间隔 6.97→3.00 cyc，2.32x），旁路优化后 2 层 MLP 263/535 cyc（2.03x）；混合精度 2.14x；分档面积 4.3k/5.4k/7.6k 门，合一 14.6k 门；支持 LMUL>1** |
 
 ## 1. 项目简介
 
@@ -64,7 +64,7 @@ benchmark/
   vbench4/                                  # INT4 点积延迟基准
   gemv/                                     # INT8 量化 GEMV 端到端基准
   gemv4/                                    # INT4 量化 GEMV 端到端基准
-  mlp/                                      # 端到端 2 层量化 MLP 推理（2.40x）
+  mlp/                                      # 端到端 2 层量化 MLP 推理（旁路优化后 2.03x）
   vmlp2/                                    # 混合精度 MLP（INT4 层+INT8 层，2.14x）
   vlat/                                     # 微架构延迟/吞吐分析
 syn/                                        # DC 综合脚本/设计/面积时序报告
@@ -90,8 +90,9 @@ docs/  ·  test-logs/
   - [x] **分档面积与时序评估（compile_ultra，SMIC 0.18um，均 129 FF）**：INT4 **32,529 µm²/4.3k 门**、INT8 **40,663/5.4k 门**、INT16 **57,428/7.6k 门**；合一三档复用 **109,597 µm²/14.6k 门**（比三档独立之和省 16%，共享一套流水）；全部 2ns 周期 slack MET。详见 docs《精度面积性能三维权衡分析》、syn/modes/。
   - [x] **INT4 点积扩展（SEW=16，W4 量化）**：补全 SiFive 提案预留的 INT4 变体，运算核参数化；3 类型×60 组随机 Difftest 全绿；点积 59 vs 110 cyc（1.86x）；**INT4 GEMV（W4 线性层）83 vs 254 cyc，3.06x**，报告见 docs《INT4点积扩展设计与验证》《INT4_GEMV线性层端到端加速报告》。
   - [x] **INT16 点积扩展（SEW=64）**：补全 SiFive 映射的最高精度变体，4×int16→int64；运算核与 NEMU 三档参数化；3 类型×60 组随机 Difftest 全绿（183 PASS、18.8 万指令零 mismatch）。至此 SiFive 三档整数点积（INT4/INT8/INT16）全部打通。
-  - [x] **端到端量化 MLP 推理**：用参数化 GEMV kernel（M=4、N 可变）堆叠 2 层 MLP（16→8→4，含 ReLU + 量化），对标 LLM FFN；vqdot 285 cyc vs 标准 RVV 685 cyc，**端到端 2.40x**，报告见 docs《端到端量化MLP推理加速报告》。
-  - [x] **微架构延迟/吞吐深度分析（vlat）**：单指令执行延迟 **2 cyc**（2 级流水）、无依赖 back-to-back **1.75 CPI**（受 MinimalConfig 前端限制）、累加同一 vd 的依赖间隔 **7 cyc**（缺写回→发射 bypass）、标准 RVV 点积序列 **33.4 cyc**；即使最不利完全串行，vqdot 仍快约 4.7x。本质是把一条 13 指令的串行依赖链折叠为 1 条 2 级流水指令。报告见 docs《微架构延迟吞吐分析》。
+  - [x] **端到端量化 MLP 推理**：用参数化 GEMV kernel（M=4、N 可变）堆叠 2 层 MLP（16→8→4，含 ReLU + 量化），对标 LLM FFN；旁路优化前 vqdot 285 cyc vs 标准 RVV 685 cyc（2.40x），**旁路优化后 vqdot 263 cyc vs 标准 RVV 535 cyc（2.03x）**，报告见 docs《端到端量化MLP推理加速报告》《vdot累加旁路forwarding优化报告》。
+  - [x] **微架构延迟/吞吐深度分析（vlat）**：单指令执行延迟 **2 cyc**（2 级流水）、无依赖 back-to-back **1.73 CPI**（受 MinimalConfig 前端限制）、累加同一 vd 的依赖间隔经旁路优化从 **6.97 → 3.00 cyc**、标准 RVV 点积序列 **33.4 cyc**；即使最不利完全串行，vqdot 仍快约 4.7x。本质是把一条 13 指令的串行依赖链折叠为 1 条 2 级流水指令。报告见 docs《微架构延迟吞吐分析》。
+  - [x] **向量累加旁路（forwarding）优化**：补全 VF 调度器 IQ 唤醒（源 VFEX0/2 → 汇 VFEX0–4）激活既有 `bypass2`，累加稳态间隔 6.97→3.00 cyc（2.32x）；唤醒汇不纳入 VLSU（store 非瓶颈、走完整写回），vlat/vqdot/vmlp 三项回归 HIT GOOD TRAP、零 mismatch。报告见 docs《vdot累加旁路forwarding优化报告》。
   - [x] **混合精度 MLP（INT4 层 + INT8 层，vmlp2）**：第一层 W4A4 用 INT4 vqdot（一条向量 8 输出）、层间 ReLU+量化、第二层 W8A8 用 INT8 vqdot（4 输出），对标真实 LLM 逐层混合精度；输出 `0 10 20 30` 与 golden 一致，vqdot 221 cyc vs 标准 RVV 474 cyc（**2.14x**），且比全 INT8（285 cyc）快 1.29x（第一层 GEMV 调用减半 + 权重压缩）。报告见 docs《混合精度MLP推理加速报告》。
 
 **阶段三延迟结果（VLEN=128，16×INT8）**：
@@ -137,7 +138,7 @@ bash $VDOT_HOME/run_vqdot16.sh   # INT16 功能（SEW=64）
 bash $VDOT_HOME/run_vbench.sh    # 点积延迟：端到端 + 纯计算周期与加速比
 bash $VDOT_HOME/run_vgemv.sh     # INT8 GEMV 线性层：端到端 2.82x
 bash $VDOT_HOME/run_vgemv4.sh    # INT4 GEMV 线性层：端到端 3.06x
-bash $VDOT_HOME/run_vmlp.sh      # 端到端 2 层 MLP 推理：2.40x
+bash $VDOT_HOME/run_vmlp.sh      # 端到端 2 层 MLP 推理：旁路优化后 2.03x
 bash $VDOT_HOME/run_vmlp2.sh     # 混合精度 MLP（INT4 层+INT8 层）：2.14x
 # 面积综合：cd $VDOT_HOME/syn_vdot && dc_shell -f syn2.tcl（5.4k 门，见 syn/）
 ```

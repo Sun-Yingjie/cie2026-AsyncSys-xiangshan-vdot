@@ -7,10 +7,10 @@ Info: [VCS_SAVE_RESTORE_INFO] ASLR (Address Space Layout Randomization) is detec
 Please use '-no_save' simv switch to avoid re-execution or '-suppress=ASLR_DETECTED_INFO' to suppress this message.
 Chronologic VCS simulator copyright 1991-2023
 Contains Synopsys proprietary information.
-Compiler version V-2023.12-SP1_Full64; Runtime version V-2023.12-SP1_Full64;  Oct 30 05:55 2026
+Compiler version V-2023.12-SP1_Full64; Runtime version V-2023.12-SP1_Full64;  Oct 30 10:19 2026
 ram image:/team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vlat/build/vlat-riscv64-xs.bin
 diff-test ref so:/team/asc/sun.yingjie/Desktop/vdot/xs-env/NEMU/build/riscv64-nemu-interpreter-so
-Core  x's Commit SHA is: 79d8dbecfe, dirty: 1
+Core  x's Commit SHA is: 4fb452589b, dirty: 1
 simv compiled at Oct 27 2026, 21:10:35
 Using simulated 8386560MB RAM
 The image is /team/asc/sun.yingjie/Desktop/vdot/xs-env/nexus-am/apps/vlat/build/vlat-riscv64-xs.bin
@@ -32,5 +32,5 @@ $finish called from file "/team/asc/sun.yingjie/Desktop/vdot/xs-env/XiangShan/di
 $finish at simulation time               100571
            V C S   S i m u l a t i o n   R e p o r t 
 Time: 100571 ns
-CPU Time:    131.890 seconds;       Data structure size:  48.6Mb
-Fri Oct 30 05:57:59 2026
+CPU Time:    118.820 seconds;       Data structure size:  48.3Mb
+Fri Oct 30 10:21:25 2026
